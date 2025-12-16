@@ -23,6 +23,8 @@ const settingsBtn = document.getElementById('settingsBtn') as HTMLButtonElement;
 const generateBtn = document.getElementById('generateBtn') as HTMLButtonElement;
 const exportCsvBtn = document.getElementById('exportCsvBtn') as HTMLButtonElement;
 const deleteAllBtn = document.getElementById('deleteAllBtn') as HTMLButtonElement;
+const manageBtn = document.getElementById('manageBtn') as HTMLButtonElement;
+const homeBtn = document.getElementById('homeBtn') as HTMLButtonElement;
 const queueList = document.getElementById('queueList') as HTMLDivElement;
 const queueCount = document.getElementById('queueCount') as HTMLSpanElement;
 const emptyState = document.getElementById('emptyState') as HTMLDivElement;
@@ -36,6 +38,8 @@ function setupEventListeners() {
   generateBtn.addEventListener('click', handleGenerate);
   exportCsvBtn.addEventListener('click', handleExport);
   deleteAllBtn.addEventListener('click', handleDeleteAll);
+  manageBtn.addEventListener('click', handleOpenManage);
+  homeBtn.addEventListener('click', handleOpenHome);
   langToggle.addEventListener('click', handleLanguageToggle);
   themeToggle.addEventListener('click', handleThemeToggle);
   wordInput.addEventListener('keypress', (e) => {
@@ -187,6 +191,26 @@ function handleThemeToggle() {
   html.classList.toggle('dark', !isDark);
   html.classList.toggle('light', isDark);
   chrome.storage.sync.set({ theme: isDark ? 'light' : 'dark' });
+}
+
+// Open manage page
+async function handleOpenManage() {
+  const config = await chrome.storage.sync.get(['serverUrl']);
+  if (!config.serverUrl) {
+    showToast('error', 'Please configure Server URL in settings');
+    return;
+  }
+  window.open(config.serverUrl + '/manage.html', '_blank');
+}
+
+// Open home page
+async function handleOpenHome() {
+  const config = await chrome.storage.sync.get(['serverUrl']);
+  if (!config.serverUrl) {
+    showToast('error', 'Please configure Server URL in settings');
+    return;
+  }
+  window.open(config.serverUrl, '_blank');
 }
 
 // Apply translations
