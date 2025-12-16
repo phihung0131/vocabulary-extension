@@ -1,0 +1,174 @@
+{
+  "common": {
+    "appName": "Quản lý từ vựng",
+    "loading": "Đang tải...",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "close": "Đóng",
+    "back": "Quay lại",
+    "next": "Tiếp",
+    "finish": "Hoàn thành",
+    "test": "Kiểm tra",
+    "add": "Thêm",
+    "remove": "Xóa",
+    "search": "Tìm kiếm",
+    "filter": "Lọc",
+    "sort": "Sắp xếp",
+    "selectAll": "Chọn tất cả",
+    "deselectAll": "Bỏ chọn tất cả",
+    "confirm": "Xác nhận"
+  },
+  "popup": {
+    "title": "Quản lý từ vựng",
+    "selectedWord": "Từ được chọn:",
+    "wordInput": {
+      "label": "Từ tiếng Anh:",
+      "placeholder": "Nhập từ cần tra cứu"
+    },
+    "buttons": {
+      "addWord": "Thêm từ",
+      "settings": "Cài đặt",
+      "generate": "Tạo Collocations",
+      "exportCsv": "Tải CSV",
+      "deleteAll": "Xóa tất cả",
+      "viewAll": "Xem tất cả"
+    },
+    "queue": {
+      "title": "Hàng đợi",
+      "count": "từ",
+      "empty": "Chưa có từ nào trong hàng đợi",
+      "emptyHint": "Chọn text trên bất kỳ trang nào và nhấp chuột phải để thêm từ",
+      "searchPlaceholder": "Tìm kiếm từ...",
+      "filters": {
+        "all": "Tất cả",
+        "pending": "Chờ xử lý",
+        "processing": "Đang xử lý",
+        "completed": "Hoàn thành",
+        "failed": "Thất bại"
+      },
+      "sort": {
+        "dateAdded": "Ngày thêm",
+        "alphabetical": "Bảng chữ cái",
+        "custom": "Thứ tự tùy chỉnh"
+      },
+      "bulkActions": {
+        "deleteSelected": "Xóa đã chọn",
+        "generateSelected": "Tạo đã chọn",
+        "exportSelected": "Xuất đã chọn"
+      }
+    },
+    "status": {
+      "checking": "Đang kiểm tra...",
+      "generating": "Đang tạo collocations...",
+      "saving": "Đang lưu...",
+      "success": "Thành công!",
+      "wordAdded": "Đã thêm \"{{word}}\" vào hàng đợi ({{count}} từ)",
+      "wordExists": "Từ này đã tồn tại trong database",
+      "wordInQueue": "Từ này đã có trong hàng đợi",
+      "generated": "Đã tạo thành công {{count}} collocations!",
+      "exportSuccess": "Xuất CSV thành công",
+      "deleteConfirm": "Bạn chắc chắn muốn xóa TẤT CẢ dữ liệu? Hành động này không thể hoàn tác!",
+      "deleted": "Đã xóa {{count}} collocations"
+    }
+  },
+  "options": {
+    "title": "Cài đặt",
+    "wizard": {
+      "welcome": {
+        "title": "Chào mừng đến với Vocabulary Manager!",
+        "subtitle": "Hãy thiết lập môi trường học từ vựng của bạn",
+        "languageLabel": "Chọn ngôn ngữ:"
+      },
+      "serverConfig": {
+        "title": "Cấu hình Server",
+        "subtitle": "Kết nối đến server từ vựng của bạn",
+        "urlLabel": "URL Server:",
+        "urlPlaceholder": "http://localhost:3000 hoặc https://yourdomain.com",
+        "hint": "Bạn cần một server Node.js chạy với MongoDB"
+      },
+      "apiKey": {
+        "title": "Thiết lập AI API",
+        "subtitle": "Cấu hình Google Gemini AI để tạo collocations",
+        "label": "Google AI API Key:",
+        "placeholder": "AIza... (API key của bạn)",
+        "getKey": "Lấy API key từ",
+        "link": "Google AI Studio",
+        "hint": "API key của bạn sẽ được mã hóa và lưu trữ an toàn"
+      },
+      "preferences": {
+        "title": "Tùy chọn",
+        "subtitle": "Tùy chỉnh trải nghiệm của bạn",
+        "themeLabel": "Giao diện:",
+        "themes": {
+          "light": "Sáng",
+          "dark": "Tối",
+          "auto": "Tự động (Hệ thống)"
+        },
+        "notificationsLabel": "Bật thông báo"
+      },
+      "confirmation": {
+        "title": "Hoàn tất!",
+        "subtitle": "Trình quản lý từ vựng đã sẵn sàng sử dụng",
+        "summary": "Tóm tắt cấu hình:",
+        "server": "Server:",
+        "apiKey": "API Key:",
+        "configured": "Đã cấu hình",
+        "theme": "Giao diện:",
+        "notifications": "Thông báo:",
+        "enabled": "Bật",
+        "disabled": "Tắt",
+        "start": "Bắt đầu sử dụng"
+      }
+    },
+    "settings": {
+      "serverSection": "Cấu hình Server",
+      "aiSection": "Cấu hình AI",
+      "preferencesSection": "Tùy chọn",
+      "testConnection": "Kiểm tra kết nối",
+      "connectionSuccess": "Kết nối thành công!",
+      "connectionFailed": "Kết nối thất bại"
+    }
+  },
+  "notifications": {
+    "configMissing": "Vui lòng cấu hình Server URL và AI API Key trong cài đặt",
+    "invalidWord": "Vui lòng nhập từ tiếng Anh hợp lệ",
+    "wordTooLong": "Từ quá dài (tối đa 100 ký tự)",
+    "offline": "Bạn đang offline. Thay đổi sẽ được đồng bộ khi kết nối lại"
+  },
+  "validation": {
+    "word": {
+      "empty": "Vui lòng nhập từ",
+      "tooLong": "Từ quá dài (tối đa 100 ký tự)",
+      "invalidFormat": "Vui lòng chỉ nhập chữ cái tiếng Anh, khoảng trắng và dấu gạch ngang"
+    },
+    "serverUrl": {
+      "empty": "Vui lòng nhập URL server",
+      "invalidProtocol": "URL phải bắt đầu với http:// hoặc https://",
+      "invalidFormat": "Định dạng URL không hợp lệ"
+    },
+    "apiKey": {
+      "empty": "Vui lòng nhập API key",
+      "invalidPrefix": "Google AI API key phải bắt đầu với 'AIza'",
+      "tooShort": "API key quá ngắn"
+    }
+  },
+  "errors": {
+    "network": {
+      "offline": "Không có kết nối internet",
+      "timeout": "Hết thời gian chờ. Vui lòng thử lại",
+      "notFound": "Không tìm thấy server",
+      "serverError": "Lỗi server. Vui lòng thử lại sau",
+      "generic": "Lỗi mạng. Vui lòng kiểm tra kết nối"
+    },
+    "api": {
+      "unauthorized": "API key không hợp lệ hoặc không được phép",
+      "rateLimited": "Quá nhiều yêu cầu. Vui lòng đợi một chút",
+      "generic": "Lỗi API. Vui lòng thử lại"
+    },
+    "config": {
+      "invalid": "Cấu hình không hợp lệ. Vui lòng kiểm tra cài đặt"
+    },
+    "unknown": "Đã xảy ra lỗi không mong muốn"
+  }
+}

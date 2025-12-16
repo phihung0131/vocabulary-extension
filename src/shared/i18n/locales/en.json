@@ -1,0 +1,174 @@
+{
+  "common": {
+    "appName": "Vocabulary Manager",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "finish": "Finish",
+    "test": "Test",
+    "add": "Add",
+    "remove": "Remove",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All",
+    "confirm": "Confirm"
+  },
+  "popup": {
+    "title": "Vocabulary Manager",
+    "selectedWord": "Selected word:",
+    "wordInput": {
+      "label": "English word:",
+      "placeholder": "Enter word to look up"
+    },
+    "buttons": {
+      "addWord": "Add Word",
+      "settings": "Settings",
+      "generate": "Generate Collocations",
+      "exportCsv": "Export CSV",
+      "deleteAll": "Delete All",
+      "viewAll": "View All"
+    },
+    "queue": {
+      "title": "Queue",
+      "count": "words",
+      "empty": "No words in queue",
+      "emptyHint": "Select text on any page and right-click to add words",
+      "searchPlaceholder": "Search words...",
+      "filters": {
+        "all": "All",
+        "pending": "Pending",
+        "processing": "Processing",
+        "completed": "Completed",
+        "failed": "Failed"
+      },
+      "sort": {
+        "dateAdded": "Date Added",
+        "alphabetical": "Alphabetical",
+        "custom": "Custom Order"
+      },
+      "bulkActions": {
+        "deleteSelected": "Delete Selected",
+        "generateSelected": "Generate Selected",
+        "exportSelected": "Export Selected"
+      }
+    },
+    "status": {
+      "checking": "Checking...",
+      "generating": "Generating collocations...",
+      "saving": "Saving...",
+      "success": "Success!",
+      "wordAdded": "Added \"{{word}}\" to queue ({{count}} words)",
+      "wordExists": "Word already exists in database",
+      "wordInQueue": "Word already in queue",
+      "generated": "Successfully generated {{count}} collocations!",
+      "exportSuccess": "CSV exported successfully",
+      "deleteConfirm": "Are you sure you want to delete ALL data? This cannot be undone!",
+      "deleted": "Deleted {{count}} collocations"
+    }
+  },
+  "options": {
+    "title": "Settings",
+    "wizard": {
+      "welcome": {
+        "title": "Welcome to Vocabulary Manager!",
+        "subtitle": "Let's set up your vocabulary learning environment",
+        "languageLabel": "Choose your language:"
+      },
+      "serverConfig": {
+        "title": "Server Configuration",
+        "subtitle": "Connect to your vocabulary server",
+        "urlLabel": "Server URL:",
+        "urlPlaceholder": "http://localhost:3000 or https://yourdomain.com",
+        "hint": "You need a Node.js server running with MongoDB"
+      },
+      "apiKey": {
+        "title": "AI API Setup",
+        "subtitle": "Configure Google Gemini AI for collocation generation",
+        "label": "Google AI API Key:",
+        "placeholder": "AIza... (your API key)",
+        "getKey": "Get your API key from",
+        "link": "Google AI Studio",
+        "hint": "Your API key will be encrypted and stored securely"
+      },
+      "preferences": {
+        "title": "Preferences",
+        "subtitle": "Customize your experience",
+        "themeLabel": "Theme:",
+        "themes": {
+          "light": "Light",
+          "dark": "Dark",
+          "auto": "Auto (System)"
+        },
+        "notificationsLabel": "Enable notifications"
+      },
+      "confirmation": {
+        "title": "All Set!",
+        "subtitle": "Your vocabulary manager is ready to use",
+        "summary": "Configuration summary:",
+        "server": "Server:",
+        "apiKey": "API Key:",
+        "configured": "Configured",
+        "theme": "Theme:",
+        "notifications": "Notifications:",
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "start": "Start Using"
+      }
+    },
+    "settings": {
+      "serverSection": "Server Configuration",
+      "aiSection": "AI Configuration",
+      "preferencesSection": "Preferences",
+      "testConnection": "Test Connection",
+      "connectionSuccess": "Connection successful!",
+      "connectionFailed": "Connection failed"
+    }
+  },
+  "notifications": {
+    "configMissing": "Please configure Server URL and AI API Key in settings",
+    "invalidWord": "Please enter a valid English word",
+    "wordTooLong": "Word is too long (max 100 characters)",
+    "offline": "You are offline. Changes will be synced when you reconnect"
+  },
+  "validation": {
+    "word": {
+      "empty": "Please enter a word",
+      "tooLong": "Word is too long (max 100 characters)",
+      "invalidFormat": "Please enter only English letters, spaces, and hyphens"
+    },
+    "serverUrl": {
+      "empty": "Please enter server URL",
+      "invalidProtocol": "URL must start with http:// or https://",
+      "invalidFormat": "Invalid URL format"
+    },
+    "apiKey": {
+      "empty": "Please enter API key",
+      "invalidPrefix": "Google AI API key must start with 'AIza'",
+      "tooShort": "API key is too short"
+    }
+  },
+  "errors": {
+    "network": {
+      "offline": "No internet connection",
+      "timeout": "Request timeout. Please try again",
+      "notFound": "Server not found",
+      "serverError": "Server error. Please try again later",
+      "generic": "Network error. Please check your connection"
+    },
+    "api": {
+      "unauthorized": "Invalid API key or unauthorized",
+      "rateLimited": "Too many requests. Please wait a moment",
+      "generic": "API error. Please try again"
+    },
+    "config": {
+      "invalid": "Invalid configuration. Please check settings"
+    },
+    "unknown": "An unexpected error occurred"
+  }
+}

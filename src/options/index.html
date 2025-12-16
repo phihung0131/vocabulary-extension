@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings - Vocabulary Manager</title>
+  <link rel="stylesheet" href="../assets/styles/tailwind.css">
+</head>
+<body class="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-gray-900 dark:to-gray-800">
+  <div class="container mx-auto max-w-2xl p-8">
+    <div class="card p-8">
+      <h1 class="text-3xl font-bold mb-8 text-center">⚙️ Settings</h1>
+
+      <!-- Server Config -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium mb-2">Server URL:</label>
+        <input type="text" id="serverUrl" class="input" placeholder="http://localhost:3000">
+      </div>
+
+      <!-- API Key -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium mb-2">Google AI API Key:</label>
+        <input type="password" id="apiKey" class="input" placeholder="AIza...">
+        <p class="text-xs text-gray-500 mt-1">Get your key from <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-primary-600">Google AI Studio</a></p>
+      </div>
+
+      <!-- Theme -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium mb-2">Theme:</label>
+        <select id="theme" class="input">
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+          <option value="auto">Auto</option>
+        </select>
+      </div>
+
+      <!-- Buttons -->
+      <div class="grid grid-cols-2 gap-4">
+        <button id="saveBtn" class="btn btn-primary">💾 Save</button>
+        <button id="testBtn" class="btn btn-secondary">🧪 Test Connection</button>
+      </div>
+
+      <!-- Status -->
+      <div id="status" class="hidden mt-4" role="alert"></div>
+    </div>
+  </div>
+
+  <script type="module" src="./index.ts"></script>
+</body>
+</html>
