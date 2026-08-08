@@ -3,48 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Settings - Vocabulary Manager</title>
+  <title>Cài đặt · Vocab Flow</title>
   <link rel="stylesheet" href="../assets/styles/tailwind.css">
 </head>
-<body class="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-gray-900 dark:to-gray-800">
-  <div class="container mx-auto max-w-2xl p-8">
-    <div class="card p-8">
-      <h1 class="text-3xl font-bold mb-8 text-center">⚙️ Settings</h1>
-
-      <!-- Server Config -->
-      <div class="mb-6">
-        <label class="block text-sm font-medium mb-2">Server URL:</label>
-        <input type="text" id="serverUrl" class="input" placeholder="http://localhost:3000">
+<body class="options-page">
+  <main class="options-shell">
+    <section class="options-hero">
+      <span class="options-logo">VF</span>
+      <p>EXTENSION SETTINGS</p>
+      <h1>Kết nối extension với vocabulary-server.</h1>
+      <span>Model, API key, batch size và delay đều được quản lý trong file <code>.env</code> của server.</span>
+    </section>
+    <section class="options-card">
+      <div class="option-field">
+        <label for="serverUrl">SERVER URL</label>
+        <input id="serverUrl" type="url">
+        <small>Không thêm dấu / ở cuối. Extension cần quyền truy cập domain này.</small>
       </div>
-
-      <!-- API Key -->
-      <div class="mb-6">
-        <label class="block text-sm font-medium mb-2">Google AI API Key:</label>
-        <input type="password" id="apiKey" class="input" placeholder="AIza...">
-        <p class="text-xs text-gray-500 mt-1">Get your key from <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-primary-600">Google AI Studio</a></p>
+      <div class="option-field">
+        <label for="theme">GIAO DIỆN</label>
+        <select id="theme"><option value="light">Sáng</option><option value="dark">Tối</option><option value="auto">Theo hệ thống</option></select>
       </div>
-
-      <!-- Theme -->
-      <div class="mb-6">
-        <label class="block text-sm font-medium mb-2">Theme:</label>
-        <select id="theme" class="input">
-          <option value="light">Light</option>
-          <option value="dark">Dark</option>
-          <option value="auto">Auto</option>
-        </select>
+      <div id="serverInfo" class="server-info hidden"></div>
+      <div class="options-actions">
+        <button id="testBtn" class="option-secondary">Kiểm tra</button>
+        <button id="saveBtn" class="option-primary">Lưu cài đặt</button>
       </div>
-
-      <!-- Buttons -->
-      <div class="grid grid-cols-2 gap-4">
-        <button id="saveBtn" class="btn btn-primary">💾 Save</button>
-        <button id="testBtn" class="btn btn-secondary">🧪 Test Connection</button>
-      </div>
-
-      <!-- Status -->
-      <div id="status" class="hidden mt-4" role="alert"></div>
-    </div>
-  </div>
-
+      <div id="status" class="option-status hidden" role="status"></div>
+    </section>
+  </main>
   <script type="module" src="./index.ts"></script>
 </body>
 </html>

@@ -1,39 +1,20 @@
 // Core domain models
 
 export interface Collocation {
+  _id?: string;
+  sourceWord?: string;
   collocation: string;
   ipa?: string;
   meaning?: string;
   synonyms?: string;
+  anonyms?: string;
+  example_en?: string;
+  example_vi?: string;
   createdAt?: Date;
 }
 
-export interface WordQueueItem {
+export interface ServerQueueItem {
+  _id: string;
   word: string;
-  addedAt: Date;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
-  error?: string;
-}
-
-export interface AppConfig {
-  serverUrl: string;
-  aiApiKey: string; // Will be encrypted in storage
-  theme: 'light' | 'dark' | 'auto';
-  language: 'en' | 'vi';
-  notificationsEnabled: boolean;
-}
-
-export interface CacheEntry<T> {
-  data: T;
-  timestamp: number;
-  ttl: number; // Time to live in milliseconds
-}
-
-export interface SyncQueueItem {
-  id: string;
-  action: 'add' | 'delete' | 'update';
-  data: unknown;
-  timestamp: number;
-  retries: number;
-  maxRetries: number;
+  createdAt: string;
 }

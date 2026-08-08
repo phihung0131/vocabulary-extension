@@ -1,22 +1,18 @@
-import { initI18n, t, changeLanguage, getCurrentLanguage } from '../shared/i18n';
-import { validateWord, sanitizeWord } from '../shared/utils/validation';
-import { showToast } from '../shared/utils/notifications';
-import { checkWordExists } from '../shared/api/server';
-import { generateCollocations } from '../shared/api/gemini';
-import { addCollocations, exportCSV, deleteAll } from '../shared/api/server';
-import { db, initDatabase } from '../shared/cache/db';
+import { sanitizeWord, validateWord } from '../shared/utils/validation';
+import {
+  addWordsToQueue,
+  checkWord,
+  deleteAll,
+  exportCSV,
+  generateQueue,
+  getHealth,
+  getQueue,
+  getServerUrl,
+  removeQueueItem,
+} from '../shared/api/server';
+import type { ServerQueueItem } from '../shared/types/models';
+import { EXTENSION_CONFIG } from '../shared/config';
 
-// Initialize
-document.addEventListener('DOMContentLoaded', async () => {
-  await initI18n();
-  await initDatabase();
-  await loadQueue();
-  setupEventListeners();
-  applyTranslations();
-  checkConfig();
-});
-
-// DOM Elements
 const wordInput = document.getElementById('wordInput') as HTMLInputElement;
 const addWordBtn = document.getElementById('addWordBtn') as HTMLButtonElement;
 const settingsBtn = document.getElementById('settingsBtn') as HTMLButtonElement;
@@ -28,199 +24,182 @@ const homeBtn = document.getElementById('homeBtn') as HTMLButtonElement;
 const queueList = document.getElementById('queueList') as HTMLDivElement;
 const queueCount = document.getElementById('queueCount') as HTMLSpanElement;
 const emptyState = document.getElementById('emptyState') as HTMLDivElement;
-const langToggle = document.getElementById('langToggle') as HTMLButtonElement;
-const themeToggle = document.getElementById('themeToggle') as HTMLButtonElement;
+const progressBox = document.getElementById('progressBox') as HTMLDivElement;
+const connectionText = document.getElementById('connectionText') as HTMLParagraphElement;
+const toastHost = document.getElementById('toastHost') as HTMLDivElement;
 
-// Setup event listeners
+document.addEventListener('DOMContentLoaded', async () => {
+  applySavedTheme();
+  setupEventListeners();
+  await loadSelectedText();
+  await Promise.all([loadConnection(), loadQueue()]);
+});
+
 function setupEventListeners() {
   addWordBtn.addEventListener('click', handleAddWord);
+  wordInput.addEventListener('keydown', event => { if (event.key === 'Enter') void handleAddWord(); });
   settingsBtn.addEventListener('click', () => chrome.runtime.openOptionsPage());
   generateBtn.addEventListener('click', handleGenerate);
   exportCsvBtn.addEventListener('click', handleExport);
   deleteAllBtn.addEventListener('click', handleDeleteAll);
-  manageBtn.addEventListener('click', handleOpenManage);
-  homeBtn.addEventListener('click', handleOpenHome);
-  langToggle.addEventListener('click', handleLanguageToggle);
-  themeToggle.addEventListener('click', handleThemeToggle);
-  wordInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') handleAddWord();
+  manageBtn.addEventListener('click', () => openServerPage(EXTENSION_CONFIG.ui.pages.manage));
+  homeBtn.addEventListener('click', () => openServerPage(EXTENSION_CONFIG.ui.pages.home));
+  queueList.addEventListener('click', event => {
+    const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-remove-id]');
+    if (button) void handleRemove(button.dataset.removeId!);
   });
 }
 
-// Check if configured
-async function checkConfig() {
-  const config = await chrome.storage.sync.get(['serverUrl']);
-  if (!config.serverUrl) {
-    showToast('warning', t('notifications.configMissing'));
-    addWordBtn.disabled = true;
-    generateBtn.disabled = true;
+async function loadSelectedText() {
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab?.id) return;
+    const response = await chrome.tabs.sendMessage(tab.id, { action: 'getSelectedText' });
+    const selected = sanitizeWord(response?.selectedText || '');
+    if (selected && selected.length <= EXTENSION_CONFIG.validation.maxWordLength) wordInput.value = selected;
+  } catch {
+    // Chrome internal pages do not allow content-script messaging.
   }
 }
 
-// Add word to queue
+async function loadConnection() {
+  try {
+    const health = await getHealth();
+    connectionText.textContent = health.database === 'connected'
+      ? `${health.settings.model} · đã đồng bộ`
+      : 'Database chưa kết nối';
+    connectionText.classList.toggle('offline', health.database !== 'connected');
+  } catch {
+    connectionText.textContent = 'Chưa cấu hình hoặc mất kết nối';
+    connectionText.classList.add('offline');
+  }
+}
+
+async function loadQueue() {
+  try {
+    renderQueue(await getQueue());
+  } catch (error) {
+    renderQueue([]);
+    showToast(getErrorMessage(error), 'error');
+  }
+}
+
+function renderQueue(items: ServerQueueItem[]) {
+  queueCount.textContent = String(items.length);
+  queueList.classList.toggle('hidden', items.length === 0);
+  emptyState.classList.toggle('hidden', items.length > 0);
+  generateBtn.disabled = items.length === 0;
+  queueList.innerHTML = items.map(item => `
+    <div class="popup-queue-item">
+      <span>${escapeHtml(item.word)}</span>
+      <button data-remove-id="${item._id}" aria-label="Xóa ${escapeHtml(item.word)}">×</button>
+    </div>`).join('');
+}
+
 async function handleAddWord() {
   const word = sanitizeWord(wordInput.value);
   const validation = validateWord(word);
+  if (!validation.valid) return showToast('Vui lòng nhập từ tiếng Anh hợp lệ.', 'error');
 
-  if (!validation.valid) {
-    showToast('error', t(validation.error!));
-    return;
-  }
-
+  setButtonLoading(addWordBtn, true, '…');
   try {
-    // Check if already exists
-    const exists = await checkWordExists(word);
-    if (exists) {
-      showToast('warning', t('popup.status.wordExists'));
-      return;
-    }
-
-    // Add to queue
-    await db.queue.add({
-      word,
-      addedAt: new Date(),
-      status: 'pending',
-    });
-
+    const state = await checkWord(word);
+    if (state.exists) return showToast('Từ này đã có trong thư viện.', 'warning');
+    if (state.inQueue) return showToast('Từ này đã có trong hàng đợi.', 'warning');
+    await addWordsToQueue([word]);
     wordInput.value = '';
+    showToast(`Đã thêm “${word}”.`, 'success');
     await loadQueue();
-    showToast('success', t('popup.status.wordAdded', { word, count: await db.queue.count() }));
   } catch (error) {
-    showToast('error', 'Failed to add word');
-    console.error(error);
-  }
-}
-
-// Load queue
-async function loadQueue() {
-  const items = await db.queue.toArray();
-  queueCount.textContent = items.length.toString();
-
-  if (items.length === 0) {
-    queueList.classList.add('hidden');
-    emptyState.classList.remove('hidden');
-    generateBtn.disabled = true;
-    return;
-  }
-
-  queueList.classList.remove('hidden');
-  emptyState.classList.add('hidden');
-  generateBtn.disabled = false;
-
-  queueList.innerHTML = items.map(item => `
-    <div class="queue-item">
-      <span class="text-sm font-medium">${item.word}</span>
-      <button class="text-red-500 hover:text-red-700" data-word="${item.word}">✕</button>
-    </div>
-  `).join('');
-
-  // Add remove handlers
-  queueList.querySelectorAll('button').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      const word = (e.target as HTMLElement).dataset.word!;
-      await db.queue.delete(word);
-      await loadQueue();
-    });
-  });
-}
-
-// Generate collocations
-async function handleGenerate() {
-  const items = await db.queue.toArray();
-  if (items.length === 0) return;
-
-  const words = items.map(i => i.word);
-
-  try {
-    generateBtn.disabled = true;
-    showToast('info', t('popup.status.generating'));
-
-    const collocations = await generateCollocations(words);
-    await addCollocations(collocations);
-    await db.queue.clear();
-    await loadQueue();
-
-    showToast('success', t('popup.status.generated', { count: collocations.length }));
-  } catch (error) {
-    showToast('error', 'Generation failed');
-    console.error(error);
+    showToast(getErrorMessage(error), 'error');
   } finally {
-    generateBtn.disabled = false;
+    setButtonLoading(addWordBtn, false, 'Thêm');
   }
 }
 
-// Export CSV
+async function handleRemove(id: string) {
+  try {
+    await removeQueueItem(id);
+    await loadQueue();
+  } catch (error) {
+    showToast(getErrorMessage(error), 'error');
+  }
+}
+
+async function handleGenerate() {
+  generateBtn.disabled = true;
+  generateBtn.textContent = 'AI đang xử lý…';
+  progressBox.classList.remove('hidden');
+  try {
+    const result = await generateQueue();
+    showToast(`Đã lưu ${result.insertedCount} collocations từ ${result.processedWords} từ.`, 'success');
+    await loadQueue();
+  } catch (error) {
+    showToast(getErrorMessage(error), 'error');
+  } finally {
+    progressBox.classList.add('hidden');
+    generateBtn.textContent = 'Tạo collocations';
+    await loadQueue();
+  }
+}
+
 async function handleExport() {
   try {
     const blob = await exportCSV();
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'vocabulary.csv';
-    a.click();
-    showToast('success', t('popup.status.exportSuccess'));
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'vocabulary.csv';
+    anchor.click();
+    URL.revokeObjectURL(url);
+    showToast('Đã tải file CSV.', 'success');
   } catch (error) {
-    showToast('error', 'Export failed');
-    console.error(error);
+    showToast(getErrorMessage(error), 'error');
   }
 }
 
-// Delete all
 async function handleDeleteAll() {
-  if (!confirm(t('popup.status.deleteConfirm'))) return;
-
+  if (!confirm('Xóa toàn bộ collocations trên server? Hành động này không thể hoàn tác.')) return;
   try {
     const result = await deleteAll();
-    showToast('success', t('popup.status.deleted', { count: result.deletedCount }));
+    showToast(`Đã xóa ${result.deletedCount} collocations.`, 'success');
   } catch (error) {
-    showToast('error', 'Delete failed');
-    console.error(error);
+    showToast(getErrorMessage(error), 'error');
   }
 }
 
-// Language toggle
-async function handleLanguageToggle() {
-  const current = getCurrentLanguage();
-  await changeLanguage(current === 'en' ? 'vi' : 'en');
-}
-
-// Theme toggle
-function handleThemeToggle() {
-  const html = document.documentElement;
-  const isDark = html.classList.contains('dark');
-  html.classList.toggle('dark', !isDark);
-  html.classList.toggle('light', isDark);
-  chrome.storage.sync.set({ theme: isDark ? 'light' : 'dark' });
-}
-
-// Open manage page
-async function handleOpenManage() {
-  const config = await chrome.storage.sync.get(['serverUrl']);
-  if (!config.serverUrl) {
-    showToast('error', 'Please configure Server URL in settings');
-    return;
+async function openServerPage(path: string) {
+  try {
+    window.open(`${await getServerUrl()}${path}`, '_blank');
+  } catch (error) {
+    showToast(getErrorMessage(error), 'error');
   }
-  window.open(config.serverUrl + '/manage.html', '_blank');
 }
 
-// Open home page
-async function handleOpenHome() {
-  const config = await chrome.storage.sync.get(['serverUrl']);
-  if (!config.serverUrl) {
-    showToast('error', 'Please configure Server URL in settings');
-    return;
-  }
-  window.open(config.serverUrl, '_blank');
-}
-
-// Apply translations
-function applyTranslations() {
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const key = el.getAttribute('data-i18n')!;
-    el.textContent = t(key);
+function applySavedTheme() {
+  void chrome.storage.sync.get('theme').then(({ theme }) => {
+    const dark = theme === 'dark' || (theme === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
+    document.documentElement.classList.toggle('dark', dark);
   });
-  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-    const key = el.getAttribute('data-i18n-placeholder')!;
-    (el as HTMLInputElement).placeholder = t(key);
-  });
+}
+
+function setButtonLoading(button: HTMLButtonElement, loading: boolean, text: string) {
+  button.disabled = loading;
+  button.textContent = text;
+}
+
+function showToast(message: string, type: 'success' | 'error' | 'warning') {
+  const toast = document.createElement('div');
+  toast.className = `popup-toast ${type}`;
+  toast.textContent = message;
+  toastHost.appendChild(toast);
+  setTimeout(() => toast.remove(), EXTENSION_CONFIG.ui.toastDurationMs);
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : 'Đã xảy ra lỗi.';
+}
+
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]!);
 }

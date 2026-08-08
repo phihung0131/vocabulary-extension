@@ -4,6 +4,7 @@
  */
 
 import { NetworkError, TimeoutError, APIError } from '../utils/error-handler';
+import { EXTENSION_CONFIG } from '../config';
 
 export interface RequestOptions extends RequestInit {
   timeout?: number; // Timeout in milliseconds (default: 30000)
@@ -23,10 +24,10 @@ export async function apiRequest<T = unknown>(
   options: RequestOptions = {}
 ): Promise<T> {
   const {
-    timeout = 30000,
-    retries = 3,
-    retryDelay = 1000,
-    retryOn = [408, 429, 500, 502, 503, 504],
+    timeout = EXTENSION_CONFIG.api.client.defaultTimeout,
+    retries = EXTENSION_CONFIG.api.client.defaultRetries,
+    retryDelay = EXTENSION_CONFIG.api.client.retryDelay,
+    retryOn = [...EXTENSION_CONFIG.api.client.retryStatuses],
     ...fetchOptions
   } = options;
 
@@ -44,8 +45,16 @@ export async function apiRequest<T = unknown>(
           continue;
         }
 
+        let message = `HTTP ${response.status}: ${response.statusText}`;
+        try {
+          const errorBody = await response.json() as { message?: string };
+          if (errorBody.message) message = errorBody.message;
+        } catch {
+          // Keep the HTTP status message when the response is not JSON.
+        }
+
         throw new APIError(
-          `HTTP ${response.status}: ${response.statusText}`,
+          message,
           response.status,
           url
         );

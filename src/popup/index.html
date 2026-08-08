@@ -1,136 +1,53 @@
 <!DOCTYPE html>
-<html lang="vi" class="light">
+<html lang="vi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vocabulary Manager</title>
+  <title>Vocab Flow</title>
   <link rel="stylesheet" href="../assets/styles/tailwind.css">
 </head>
-<body class="w-[420px] min-h-[500px]">
-  <div class="flex flex-col h-full">
-    <!-- Header -->
-    <div class="bg-gradient-to-r from-primary-600 to-secondary-600 text-white p-4">
-      <div class="flex items-center justify-between">
-        <h1 class="text-xl font-bold">📚 Vocabulary Manager</h1>
-        <div class="flex gap-2">
-          <button id="langToggle" class="btn-ghost text-white hover:bg-white/20 text-sm px-2 py-1"
-                  aria-label="Change language" title="Change language">
-            EN/VI
-          </button>
-          <button id="themeToggle" class="btn-ghost text-white hover:bg-white/20 text-sm px-2 py-1"
-                  aria-label="Toggle dark mode" title="Toggle dark mode">
-            🌓
-          </button>
-        </div>
+<body class="extension-popup">
+  <main class="popup-shell">
+    <header class="popup-header">
+      <div class="popup-brand">
+        <span class="popup-logo">VF</span>
+        <div><h1>Vocab Flow</h1><p id="connectionText">Đang kết nối server…</p></div>
       </div>
-    </div>
+      <button id="settingsBtn" class="icon-control" aria-label="Cài đặt">⚙</button>
+    </header>
 
-    <!-- Content -->
-    <div class="flex-1 p-4 overflow-y-auto scrollbar-thin">
-      <!-- Selected Text Display -->
-      <div id="selectedTextDisplay" class="hidden mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-        <div class="text-sm text-blue-700 dark:text-blue-300">
-          <strong class="font-medium" data-i18n="popup.selectedWord">Selected word:</strong>
-          <span id="selectedWordText" class="ml-2 font-semibold"></span>
-        </div>
+    <section class="popup-hero">
+      <span class="hero-kicker">QUICK CAPTURE</span>
+      <h2>Giữ từ mới trước khi bạn quên.</h2>
+      <div class="capture-row">
+        <input id="wordInput" class="popup-input" type="text" placeholder="Nhập từ tiếng Anh" autocomplete="off">
+        <button id="addWordBtn" class="popup-primary">Thêm</button>
       </div>
+      <p class="micro-copy">Queue được đồng bộ với web server.</p>
+    </section>
 
-      <!-- Word Input -->
-      <div class="mb-4">
-        <label for="wordInput" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300"
-               data-i18n="popup.wordInput.label">
-          English word:
-        </label>
-        <input
-          type="text"
-          id="wordInput"
-          class="input"
-          placeholder="Enter word to look up"
-          data-i18n-placeholder="popup.wordInput.placeholder"
-          autocomplete="off"
-          aria-label="Word input"
-        >
+    <section class="popup-card">
+      <div class="section-head">
+        <div><h3>Hàng đợi</h3><p>Tối đa 20 từ mỗi batch</p></div>
+        <span id="queueCount" class="popup-count">0</span>
       </div>
-
-      <!-- Action Buttons -->
-      <div class="grid grid-cols-2 gap-2 mb-4">
-        <button id="addWordBtn" class="btn btn-primary" data-i18n="popup.buttons.addWord">
-          Add Word
-        </button>
-        <button id="settingsBtn" class="btn btn-secondary" data-i18n="popup.buttons.settings">
-          Settings
-        </button>
+      <div id="queueList" class="popup-queue"></div>
+      <div id="emptyState" class="popup-empty"><strong>Chưa có từ nào</strong><span>Chọn text và chuột phải hoặc nhập ở trên.</span></div>
+      <div id="progressBox" class="progress-box hidden">
+        <div class="progress-track"><span></span></div>
+        <p>AI đang tạo 2–3 collocations cho mỗi từ…</p>
       </div>
+      <button id="generateBtn" class="popup-primary full">Tạo collocations</button>
+    </section>
 
-      <!-- Quick Actions -->
-      <div class="grid grid-cols-2 gap-2 mb-4">
-        <button id="manageBtn" class="btn bg-green-600 text-white hover:bg-green-700">
-          📖 Quản lý từ
-        </button>
-        <button id="homeBtn" class="btn bg-purple-600 text-white hover:bg-purple-700">
-          🏠 Mở Web UI
-        </button>
-      </div>
-
-      <!-- Progress Bar -->
-      <div id="progressBar" class="hidden mb-4">
-        <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-          <div id="progressFill" class="h-full bg-gradient-to-r from-primary-500 to-secondary-500 transition-all duration-300" style="width: 0%"></div>
-        </div>
-        <div id="progressText" class="text-xs text-center mt-1 text-gray-600 dark:text-gray-400"></div>
-      </div>
-
-      <!-- Status Message -->
-      <div id="statusMessage" class="hidden mb-4" role="alert" aria-live="polite"></div>
-
-      <!-- Queue Section -->
-      <div class="card p-4">
-        <div class="flex items-center justify-between mb-3">
-          <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200">
-            <span data-i18n="popup.queue.title">Queue</span>
-            (<span id="queueCount">0</span> <span data-i18n="popup.queue.count">words</span>)
-          </h2>
-          <button id="generateBtn" class="btn btn-primary text-sm" data-i18n="popup.buttons.generate">
-            Generate
-          </button>
-        </div>
-
-        <!-- Search Bar -->
-        <input
-          type="text"
-          id="queueSearch"
-          class="input mb-3"
-          placeholder="Search words..."
-          data-i18n-placeholder="popup.queue.searchPlaceholder"
-        >
-
-        <!-- Queue List -->
-        <div id="queueList" class="space-y-2 max-h-[250px] overflow-y-auto scrollbar-thin">
-          <!-- Queue items will be inserted here -->
-        </div>
-
-        <!-- Empty State -->
-        <div id="emptyState" class="text-center py-8 text-gray-500 dark:text-gray-400">
-          <div class="text-4xl mb-2">📝</div>
-          <p class="text-sm" data-i18n="popup.queue.empty">No words in queue</p>
-          <p class="text-xs mt-1" data-i18n="popup.queue.emptyHint">
-            Select text on any page and right-click to add words
-          </p>
-        </div>
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="grid grid-cols-2 gap-2 mt-4">
-        <button id="exportCsvBtn" class="btn btn-secondary text-sm" data-i18n="popup.buttons.exportCsv">
-          📥 Export CSV
-        </button>
-        <button id="deleteAllBtn" class="btn btn-danger text-sm" data-i18n="popup.buttons.deleteAll">
-          🗑️ Delete All
-        </button>
-      </div>
-    </div>
-  </div>
-
+    <section class="quick-grid">
+      <button id="homeBtn" class="quick-action"><span>↗</span><strong>Mở web</strong><small>Hàng đợi</small></button>
+      <button id="manageBtn" class="quick-action"><span>⌕</span><strong>Thư viện</strong><small>Tìm & sửa</small></button>
+      <button id="exportCsvBtn" class="quick-action"><span>↓</span><strong>CSV</strong><small>Xuất Anki</small></button>
+      <button id="deleteAllBtn" class="quick-action danger"><span>×</span><strong>Xóa hết</strong><small>Dữ liệu server</small></button>
+    </section>
+  </main>
+  <div id="toastHost" class="toast-host"></div>
   <script type="module" src="./index.ts"></script>
 </body>
 </html>

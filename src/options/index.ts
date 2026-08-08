@@ -1,95 +1,76 @@
-import { initI18n } from '../shared/i18n';
-import { validateServerUrl, validateApiKey } from '../shared/utils/validation';
-import { storeApiKey, retrieveApiKey } from '../shared/security/keychain';
-import { testConnection } from '../shared/api/server';
-import { testAIConnection } from '../shared/api/gemini';
+import { getHealth } from '../shared/api/server';
+import { validateServerUrl } from '../shared/utils/validation';
+import { EXTENSION_CONFIG } from '../shared/config';
 
 const serverUrlInput = document.getElementById('serverUrl') as HTMLInputElement;
-const apiKeyInput = document.getElementById('apiKey') as HTMLInputElement;
 const themeSelect = document.getElementById('theme') as HTMLSelectElement;
 const saveBtn = document.getElementById('saveBtn') as HTMLButtonElement;
 const testBtn = document.getElementById('testBtn') as HTMLButtonElement;
 const statusDiv = document.getElementById('status') as HTMLDivElement;
+const serverInfo = document.getElementById('serverInfo') as HTMLDivElement;
 
 document.addEventListener('DOMContentLoaded', async () => {
-  await initI18n();
-  await loadSettings();
-  setupEventListeners();
-});
-
-async function loadSettings() {
-  const config = await chrome.storage.sync.get(['serverUrl', 'theme']);
-  const apiKey = await retrieveApiKey();
-
-  if (config.serverUrl) serverUrlInput.value = config.serverUrl;
-  if (apiKey) apiKeyInput.value = apiKey;
-  if (config.theme) themeSelect.value = config.theme;
-}
-
-function setupEventListeners() {
+  const config = await chrome.storage.sync.get([
+    EXTENSION_CONFIG.storageKeys.serverUrl,
+    EXTENSION_CONFIG.storageKeys.theme,
+  ]);
+  serverUrlInput.value = config.serverUrl || EXTENSION_CONFIG.defaults.serverUrl;
+  serverUrlInput.placeholder = EXTENSION_CONFIG.defaults.serverUrl;
+  themeSelect.value = config.theme || EXTENSION_CONFIG.defaults.theme;
   saveBtn.addEventListener('click', handleSave);
   testBtn.addEventListener('click', handleTest);
-}
+});
 
 async function handleSave() {
-  const serverUrl = serverUrlInput.value.trim();
-  const apiKey = apiKeyInput.value.trim();
-  const theme = themeSelect.value;
-
-  const urlValidation = validateServerUrl(serverUrl);
-  if (!urlValidation.valid) {
-    showStatus('error', urlValidation.error!);
-    return;
-  }
-
-  const apiValidation = validateApiKey(apiKey);
-  if (!apiValidation.valid) {
-    showStatus('error', apiValidation.error!);
-    return;
-  }
-
+  const serverUrl = normalizeUrl(serverUrlInput.value);
+  const validation = validateServerUrl(serverUrl);
+  if (!validation.valid) return showStatus('error', 'Server URL không hợp lệ.');
   try {
-    await chrome.storage.sync.set({ serverUrl, theme });
-    await storeApiKey(apiKey);
-    showStatus('success', 'Settings saved successfully!');
+    await chrome.storage.sync.set({ serverUrl, theme: themeSelect.value });
+    serverUrlInput.value = serverUrl;
+    showStatus('success', 'Đã lưu cài đặt.');
   } catch (error) {
-    showStatus('error', 'Failed to save settings');
-    console.error(error);
+    showStatus('error', getErrorMessage(error));
   }
 }
 
 async function handleTest() {
+  const serverUrl = normalizeUrl(serverUrlInput.value);
+  if (!validateServerUrl(serverUrl).valid) return showStatus('error', 'Server URL không hợp lệ.');
   testBtn.disabled = true;
-  testBtn.textContent = 'Testing...';
-
+  testBtn.textContent = 'Đang kiểm tra…';
   try {
-    const serverOk = await testConnection();
-    const aiOk = await testAIConnection();
-
-    if (serverOk && aiOk) {
-      showStatus('success', '✅ All connections successful!');
-    } else if (serverOk) {
-      showStatus('warning', '⚠️ Server OK, but AI API failed');
-    } else if (aiOk) {
-      showStatus('warning', '⚠️ AI API OK, but server failed');
-    } else {
-      showStatus('error', '❌ Both connections failed');
-    }
+    await chrome.storage.sync.set({ serverUrl });
+    const health = await getHealth();
+    serverInfo.innerHTML = `
+      <strong>${health.database === 'connected' ? 'Server sẵn sàng' : 'Database chưa kết nối'}</strong>
+      <span>Model: ${escapeHtml(health.settings.model)}</span>
+      <span>Batch: ${health.settings.batchSize} từ · delay ${health.settings.batchDelayMs / 1000}s</span>
+      <span>${health.settings.collocationsPerWord} collocations / từ · AI ${health.aiConfigured ? 'đã cấu hình' : 'chưa có API key'}</span>`;
+    serverInfo.classList.remove('hidden');
+    showStatus(health.database === 'connected' && health.aiConfigured ? 'success' : 'warning', 'Đã nhận cấu hình từ server.');
   } catch (error) {
-    showStatus('error', 'Connection test failed');
-    console.error(error);
+    serverInfo.classList.add('hidden');
+    showStatus('error', getErrorMessage(error));
   } finally {
     testBtn.disabled = false;
-    testBtn.textContent = '🧪 Test Connection';
+    testBtn.textContent = 'Kiểm tra';
   }
 }
 
-function showStatus(type: 'success' | 'error' | 'warning', message: string) {
-  statusDiv.className = `status status-${type}`;
-  statusDiv.textContent = message;
-  statusDiv.classList.remove('hidden');
+function normalizeUrl(value: string): string {
+  return value.trim().replace(/\/$/, '');
+}
 
-  if (type === 'success') {
-    setTimeout(() => statusDiv.classList.add('hidden'), 3000);
-  }
+function showStatus(type: 'success' | 'error' | 'warning', message: string) {
+  statusDiv.className = `option-status ${type}`;
+  statusDiv.textContent = message;
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : 'Không thể kết nối server.';
+}
+
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]!);
 }

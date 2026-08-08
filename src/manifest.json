@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Vocabulary Manager",
   "version": "2.0.0",
-  "description": "Modern vocabulary learning with AI-powered collocations, offline support, and bilingual interface",
+  "description": "Vocabulary client synchronized with vocabulary-server",
   "permissions": [
     "activeTab",
     "storage",
@@ -11,8 +11,8 @@
     "alarms"
   ],
   "host_permissions": [
-    "https://generativelanguage.googleapis.com/*",
-    "http://localhost/*"
+    "http://*/*",
+    "https://*/*"
   ],
   "background": {
     "service_worker": "src/background/index.ts",
@@ -26,16 +26,17 @@
   ],
   "action": {
     "default_popup": "src/popup/index.html",
-    "default_title": "Vocabulary Manager"
+    "default_title": "Vocabulary Manager",
+    "default_icon": "icons/icon.png"
   },
   "options_ui": {
     "page": "src/options/index.html",
     "open_in_tab": true
   },
   "icons": {
-    "16": "icons/icon16.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
+    "16": "icons/icon.png",
+    "48": "icons/icon.png",
+    "128": "icons/icon.png"
   },
   "web_accessible_resources": [
     {

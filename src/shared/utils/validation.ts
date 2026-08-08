@@ -3,6 +3,8 @@
  * Consolidates all validation logic from popup.js and background.js
  */
 
+import { EXTENSION_CONFIG } from '../config';
+
 // Word validation regex - allows English letters, spaces, and hyphens
 const ENGLISH_WORD_REGEX = /^[a-zA-Z\s-]+$/;
 
@@ -22,7 +24,7 @@ export function isValidEnglishWord(word: string): boolean {
   const trimmed = word.trim();
 
   // Check length
-  if (trimmed.length === 0 || trimmed.length > 100) {
+  if (trimmed.length === 0 || trimmed.length > EXTENSION_CONFIG.validation.maxWordLength) {
     return false;
   }
 
@@ -101,7 +103,7 @@ export function validateWord(word: string): ValidationResult {
 
   const trimmed = word.trim();
 
-  if (trimmed.length > 100) {
+  if (trimmed.length > EXTENSION_CONFIG.validation.maxWordLength) {
     return {
       valid: false,
       error: 'validation.word.tooLong',

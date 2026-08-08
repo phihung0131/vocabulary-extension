@@ -1,26 +1,30 @@
 import { sanitizeWord, isValidEnglishWord } from '../shared/utils/validation';
-import { checkWordExists } from '../shared/api/server';
-import { db, initDatabase } from '../shared/cache/db';
-import { migrateApiKey } from '../shared/security/keychain';
+import { addWordsToQueue, checkWord } from '../shared/api/server';
+import { EXTENSION_CONFIG } from '../shared/config';
 
 // Initialize
 chrome.runtime.onInstalled.addListener(async () => {
   console.log('✅ Extension installed');
 
-  await initDatabase();
-  await migrateApiKey(); // Migrate old plaintext API key
+  const { serverUrl } = await chrome.storage.sync.get(EXTENSION_CONFIG.storageKeys.serverUrl);
+  if (!serverUrl) {
+    await chrome.storage.sync.set({
+      serverUrl: EXTENSION_CONFIG.defaults.serverUrl,
+      theme: EXTENSION_CONFIG.defaults.theme,
+    });
+  }
 
   // Create context menu
   chrome.contextMenus.create({
-    id: 'addVocabulary',
-    title: '📚 Add to vocabulary: "%s"',
+    id: EXTENSION_CONFIG.contextMenu.id,
+    title: EXTENSION_CONFIG.contextMenu.title,
     contexts: ['selection'],
   });
 });
 
 // Handle context menu clicks
 chrome.contextMenus.onClicked.addListener(async (info) => {
-  if (info.menuItemId !== 'addVocabulary') return;
+  if (info.menuItemId !== EXTENSION_CONFIG.contextMenu.id) return;
 
   const word = sanitizeWord(info.selectionText || '');
 
@@ -31,28 +35,17 @@ chrome.contextMenus.onClicked.addListener(async (info) => {
 
   try {
     // Check if already exists
-    const exists = await checkWordExists(word);
-    if (exists) {
+    const state = await checkWord(word);
+    if (state.exists) {
       showNotification('warning', `"${word}" already exists in database`);
       return;
     }
-
-    // Check if already in queue
-    const inQueue = await db.queue.get(word);
-    if (inQueue) {
+    if (state.inQueue) {
       showNotification('warning', `"${word}" already in queue`);
       return;
     }
-
-    // Add to queue
-    await db.queue.add({
-      word,
-      addedAt: new Date(),
-      status: 'pending',
-    });
-
-    const count = await db.queue.count();
-    showNotification('success', `Added "${word}" to queue (${count} words)`);
+    await addWordsToQueue([word]);
+    showNotification('success', `Added "${word}" to the synced queue`);
   } catch (error) {
     console.error('Failed to add word:', error);
     showNotification('error', 'Failed to add word');
@@ -69,7 +62,7 @@ function showNotification(type: 'success' | 'error' | 'warning', message: string
 
   chrome.notifications.create({
     type: 'basic',
-    iconUrl: chrome.runtime.getURL('icons/icon48.png') || '',
+    iconUrl: chrome.runtime.getURL('icons/icon.png') || '',
     title: titles[type],
     message,
     priority: type === 'error' ? 2 : 1,
