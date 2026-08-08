@@ -66,5 +66,12 @@ function showNotification(type: 'success' | 'error' | 'warning', message: string
     title: titles[type],
     message,
     priority: type === 'error' ? 2 : 1,
+    requireInteraction: false,
+  }, notificationId => {
+    if (chrome.runtime.lastError || !notificationId) return;
+
+    setTimeout(() => {
+      void chrome.notifications.clear(notificationId);
+    }, EXTENSION_CONFIG.ui.notificationDurationMs);
   });
 }

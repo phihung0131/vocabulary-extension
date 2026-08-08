@@ -49,6 +49,7 @@ export const EXTENSION_CONFIG = {
 
   ui: {
     toastDurationMs: 4_500,
+    notificationDurationMs: 5_000,
     pages: {
       home: '',
       manage: '/manage.html',
