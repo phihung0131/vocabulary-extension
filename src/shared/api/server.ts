@@ -7,6 +7,7 @@ const { paths, requests } = EXTENSION_CONFIG.api;
 export interface CheckWordResponse {
   status: string;
   exists: boolean;
+  archived?: boolean;
   inQueue: boolean;
 }
 
@@ -35,6 +36,8 @@ export interface GenerateResponse {
 
 export interface DeleteAllResponse {
   status: string;
+  archivedCount?: number;
+  /** @deprecated Kept for older server versions. */
   deletedCount: number;
 }
 

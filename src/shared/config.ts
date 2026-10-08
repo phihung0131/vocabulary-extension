@@ -6,7 +6,7 @@
  */
 export const EXTENSION_CONFIG = {
   defaults: {
-    serverUrl: 'http://localhost:3000',
+    serverUrl: 'https://anki-voca.vercel.app',
     theme: 'auto' as const,
   },
 
@@ -22,7 +22,7 @@ export const EXTENSION_CONFIG = {
       queue: '/api/queue',
       generate: '/api/generate',
       exportCsv: '/api/export-csv',
-      deleteAll: '/api/delete-all',
+      deleteAll: '/api/archive-all',
       collocations: '/api/collocations',
     },
     requests: {

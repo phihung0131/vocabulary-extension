@@ -104,7 +104,7 @@ async function handleAddWord() {
   setButtonLoading(addWordBtn, true, '…');
   try {
     const state = await checkWord(word);
-    if (state.exists) return showToast('Từ này đã có trong thư viện.', 'warning');
+    if (state.exists) return showToast(state.archived ? 'Từ này đã có trong danh sách lưu trữ.' : 'Từ này đã có trong thư viện.', 'warning');
     if (state.inQueue) return showToast('Từ này đã có trong hàng đợi.', 'warning');
     await addWordsToQueue([word]);
     wordInput.value = '';
@@ -159,10 +159,10 @@ async function handleExport() {
 }
 
 async function handleDeleteAll() {
-  if (!confirm('Xóa toàn bộ collocations trên server? Hành động này không thể hoàn tác.')) return;
+  if (!confirm('Chuyển toàn bộ collocations vào danh sách lưu trữ?')) return;
   try {
     const result = await deleteAll();
-    showToast(`Đã xóa ${result.deletedCount} collocations.`, 'success');
+    showToast(`Đã lưu trữ ${result.archivedCount ?? result.deletedCount} collocations.`, 'success');
   } catch (error) {
     showToast(getErrorMessage(error), 'error');
   }
