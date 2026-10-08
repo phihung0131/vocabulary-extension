@@ -20,10 +20,31 @@ chrome.runtime.onInstalled.addListener(async () => {
     title: EXTENSION_CONFIG.contextMenu.title,
     contexts: ['selection'],
   });
+  chrome.contextMenus.create({
+    id: 'openVocabularyReview',
+    title: '🃏 Ôn flashcard từ vựng',
+    contexts: ['page'],
+  }, () => { void chrome.runtime.lastError; });
+});
+
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (message?.action !== 'disableVocabularyPanel') return;
+  void chrome.sidePanel.setOptions({ enabled: false }).then(async () => {
+    await chrome.storage.local.set({ reviewPanelEnabled: false });
+    sendResponse({ ok: true });
+  }).catch(error => sendResponse({ ok: false, message: String(error) }));
+  return true;
 });
 
 // Handle context menu clicks
 chrome.contextMenus.onClicked.addListener(async (info) => {
+  if (info.menuItemId === 'openVocabularyReview') {
+    const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+    await chrome.sidePanel.setOptions({ enabled: true });
+    await chrome.storage.local.set({ reviewPanelEnabled: true });
+    if (tab?.windowId) await chrome.sidePanel.open({ windowId: tab.windowId });
+    return;
+  }
   if (info.menuItemId !== EXTENSION_CONFIG.contextMenu.id) return;
 
   const word = sanitizeWord(info.selectionText || '');

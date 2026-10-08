@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ôn từ vựng</title>
+    <link rel="stylesheet" href="../assets/styles/tailwind.css">
+  </head>
+  <body class="side-panel-page">
+    <main class="side-panel-shell">
+      <header class="side-panel-header">
+        <div><p class="side-panel-kicker">VOCAB FLOW · KHO LƯU TRỮ</p><h1>Ôn nhanh</h1></div>
+        <button class="side-panel-close" id="closePanelBtn" title="Tắt panel">×</button>
+      </header>
+      <p class="side-panel-count" id="deckCount">Đang tải từ…</p>
+      <section class="side-flashcard" id="flashcard" role="group" tabindex="0" aria-label="Chạm để lật thẻ">
+        <span class="side-source hidden" id="sourceWord"></span>
+        <div class="side-term-row"><h2 id="wordText">Đang tải…</h2><button class="side-speak" id="speakWordBtn" aria-label="Đọc từ">🔊</button></div>
+        <p class="side-ipa hidden" id="ipaText"></p>
+        <div class="side-answer hidden" id="answerPanel"></div>
+        <span class="side-hint" id="flipHint">Chạm để xem nghĩa và ví dụ</span>
+      </section>
+      <nav class="side-controls">
+        <button id="prevBtn" title="Từ trước">←</button>
+        <button id="shuffleBtn" title="Xáo trộn">🔀</button>
+        <button id="nextBtn" title="Từ tiếp theo">→</button>
+      </nav>
+      <div class="side-empty hidden" id="emptyState">Kho lưu trữ hiện chưa có từ nào.</div>
+      <p class="side-panel-footnote">Chuyển tab, panel vẫn ở cạnh trang để bạn tiếp tục ôn.</p>
+      <p class="side-error hidden" id="errorText"></p>
+    </main>
+    <script type="module" src="./index.ts"></script>
+  </body>
+</html>

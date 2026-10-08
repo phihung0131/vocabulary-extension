@@ -21,6 +21,8 @@ const exportCsvBtn = document.getElementById('exportCsvBtn') as HTMLButtonElemen
 const deleteAllBtn = document.getElementById('deleteAllBtn') as HTMLButtonElement;
 const manageBtn = document.getElementById('manageBtn') as HTMLButtonElement;
 const homeBtn = document.getElementById('homeBtn') as HTMLButtonElement;
+const reviewPanelBtn = document.getElementById('reviewPanelBtn') as HTMLButtonElement;
+const reviewPanelLabel = document.getElementById('reviewPanelLabel') as HTMLElement;
 const queueList = document.getElementById('queueList') as HTMLDivElement;
 const queueCount = document.getElementById('queueCount') as HTMLSpanElement;
 const emptyState = document.getElementById('emptyState') as HTMLDivElement;
@@ -44,10 +46,38 @@ function setupEventListeners() {
   deleteAllBtn.addEventListener('click', handleDeleteAll);
   manageBtn.addEventListener('click', () => openServerPage(EXTENSION_CONFIG.ui.pages.manage));
   homeBtn.addEventListener('click', () => openServerPage(EXTENSION_CONFIG.ui.pages.home));
+  reviewPanelBtn.addEventListener('click', handleReviewPanelToggle);
+  void refreshReviewPanelLabel();
   queueList.addEventListener('click', event => {
     const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-remove-id]');
     if (button) void handleRemove(button.dataset.removeId!);
   });
+}
+
+async function refreshReviewPanelLabel() {
+  const { reviewPanelEnabled } = await chrome.storage.local.get('reviewPanelEnabled');
+  reviewPanelLabel.textContent = reviewPanelEnabled ? 'Tắt panel ôn từ' : 'Ôn khi duyệt web';
+}
+
+async function handleReviewPanelToggle() {
+  try {
+    const { reviewPanelEnabled } = await chrome.storage.local.get('reviewPanelEnabled');
+    if (reviewPanelEnabled) {
+      await chrome.sidePanel.setOptions({ enabled: false });
+      await chrome.storage.local.set({ reviewPanelEnabled: false });
+      reviewPanelLabel.textContent = 'Ôn khi duyệt web';
+      showToast('Đã tắt panel ôn từ.', 'success');
+      return;
+    }
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab?.windowId) throw new Error('Không tìm thấy cửa sổ trình duyệt.');
+    await chrome.sidePanel.setOptions({ enabled: true });
+    await chrome.storage.local.set({ reviewPanelEnabled: true });
+    await chrome.sidePanel.open({ windowId: tab.windowId });
+    reviewPanelLabel.textContent = 'Tắt panel ôn từ';
+  } catch (error) {
+    showToast(getErrorMessage(error), 'error');
+  }
 }
 
 async function loadSelectedText() {
